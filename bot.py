@@ -15,7 +15,7 @@ chatbot = pipeline("text-generation", model="gpt2")
 
 # Handler untuk command /start
 async def start(update: Update, context):
-    await update.message.reply_text('Halo! Saya adalah chatbot AI. Silakan kirim pesan apa pun.')
+    await update.message.reply_text('Halo! Saya adalah Revolt X AI. Silakan kirim pesan apa pun.')
 
 # Handler untuk pesan teks
 async def chat(update: Update, context):
