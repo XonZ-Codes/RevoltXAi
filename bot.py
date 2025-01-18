@@ -10,24 +10,24 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# Fungsi untuk menghasilkan respons menggunakan Hugging Face API
+# Fungsi untuk menghasilkan respons menggunakan DeepAI API
 def generate_response(prompt):
-    api_url = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium"  # Ganti dengan model lain jika perlu
-    headers = {"Authorization": f"Bearer {os.getenv('HUGGING_FACE_API_KEY')}"}
-    payload = {"inputs": prompt}
+    api_url = "https://api.deepai.org/api/text-generator"  # Endpoint DeepAI
+    headers = {"api-key": os.getenv('DEEPAI_API_KEY')}
+    payload = {"text": prompt}
     
     try:
-        response = requests.post(api_url, headers=headers, json=payload)
+        response = requests.post(api_url, headers=headers, data=payload)
         response.raise_for_status()  # Raise exception jika status code bukan 200
         response_data = response.json()
         
         # Cek apakah respons valid
-        if isinstance(response_data, list) and len(response_data) > 0:
-            return response_data[0]['generated_text']
+        if "output" in response_data:
+            return response_data["output"]
         else:
-            raise Exception("Respons dari API tidak valid.")
+            raise Exception("Respons dari DeepAI API tidak valid.")
     except requests.exceptions.RequestException as e:
-        logging.error(f"Error saat memanggil Hugging Face API: {e}")
+        logging.error(f"Error saat memanggil DeepAI API: {e}")
         raise Exception("Terjadi kesalahan saat memproses pesan Anda. Silakan coba lagi nanti.")
 
 # Handler untuk command /start
@@ -40,16 +40,16 @@ async def chat(update: Update, context):
     logging.info(f"User: {user_message}")
 
     try:
-        # Berikan konteks yang jelas ke model
-        prompt = f"Anda adalah asisten AI yang ramah dan membantu. Jawablah pertanyaan berikut dengan singkat dan jelas: {user_message}"
+        # Berikan prompt yang jelas ke model
+        prompt = f"User: {user_message}\nAI:"
         
-        # Generate respons menggunakan Hugging Face API
+        # Generate respons menggunakan DeepAI API
         response = generate_response(prompt)
         logging.info(f"Bot: {response}")
         await update.message.reply_text(response)
     except Exception as e:
         logging.error(f"Error: {e}")
-        await update.message.reply_text(f"Maaf, terjadi kesalahan: {str(e)}")
+        await update.message.reply_text("Maaf, terjadi kesalahan saat memproses pesan Anda.")
 
 if __name__ == '__main__':
     # Ambil token bot Telegram dari environment variable
