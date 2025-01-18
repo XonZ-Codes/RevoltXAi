@@ -30,7 +30,7 @@ async def chat(update: Update, context):
 
 if __name__ == '__main__':
     # Ambil token bot Telegram dari environment variable
-    token = os.getenv('TELEGRAM_BOT_TOKEN')
+    token = os.getenv('7797570211:AAGJNP7rmYUA7BsiNhKj-Mtek0hzTzGbD50')
     if not token:
         raise ValueError("Token bot Telegram tidak ditemukan. Pastikan Anda telah mengatur environment variable TELEGRAM_BOT_TOKEN.")
 
