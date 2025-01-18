@@ -1,8 +1,8 @@
 import os
 import logging
+import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
-from transformers import pipeline
 
 # Setup logging
 logging.basicConfig(
@@ -10,8 +10,18 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# Gunakan model AI gratis dari Hugging Face
-chatbot = pipeline("text-generation", model="gpt2")
+# Fungsi untuk menghasilkan respons menggunakan Hugging Face API
+def generate_response(prompt):
+    api_url = "https://api-inference.huggingface.co/models/distilgpt2"
+    headers = {"Authorization": f"Bearer {os.getenv('HUGGING_FACE_API_KEY')}"}
+    payload = {"inputs": prompt}
+    response = requests.post(api_url, headers=headers, json=payload)
+    
+    # Cek apakah respons valid
+    if response.status_code == 200 and isinstance(response.json(), list):
+        return response.json()[0]['generated_text']
+    else:
+        raise Exception(f"Error dari Hugging Face API: {response.status_code} - {response.text}")
 
 # Handler untuk command /start
 async def start(update: Update, context):
@@ -22,15 +32,18 @@ async def chat(update: Update, context):
     user_message = update.message.text
     logging.info(f"User: {user_message}")
 
-    # Generate respons menggunakan model AI
-    response = chatbot(user_message, max_length=50, num_return_sequences=1)[0]['generated_text']
-    logging.info(f"Bot: {response}")
-
-    await update.message.reply_text(response)
+    try:
+        # Generate respons menggunakan Hugging Face API
+        response = generate_response(user_message)
+        logging.info(f"Bot: {response}")
+        await update.message.reply_text(response)
+    except Exception as e:
+        logging.error(f"Error: {e}")
+        await update.message.reply_text("Maaf, terjadi kesalahan saat memproses pesan Anda.")
 
 if __name__ == '__main__':
     # Ambil token bot Telegram dari environment variable
-    token = os.getenv('7797570211:AAGJNP7rmYUA7BsiNhKj-Mtek0hzTzGbD50')
+    token = os.getenv('TELEGRAM_BOT_TOKEN')
     if not token:
         raise ValueError("Token bot Telegram tidak ditemukan. Pastikan Anda telah mengatur environment variable TELEGRAM_BOT_TOKEN.")
 
