@@ -16,16 +16,11 @@ def generate_response(prompt):
     headers = {"Authorization": f"Bearer {os.getenv('HUGGING_FACE_API_KEY')}"}
     payload = {"inputs": prompt}
     response = requests.post(api_url, headers=headers, json=payload)
-    
-    # Cek apakah respons valid
-    if response.status_code == 200 and isinstance(response.json(), list):
-        return response.json()[0]['generated_text']
-    else:
-        raise Exception(f"Error dari Hugging Face API: {response.status_code} - {response.text}")
+    return response.json()[0]['generated_text']
 
 # Handler untuk command /start
 async def start(update: Update, context):
-    await update.message.reply_text('Halo! Saya adalah Revolt X AI. Silakan kirim pesan apa pun.')
+    await update.message.reply_text('Halo! Saya adalah Revolt AI. Silakan kirim pesan apa pun.')
 
 # Handler untuk pesan teks
 async def chat(update: Update, context):
