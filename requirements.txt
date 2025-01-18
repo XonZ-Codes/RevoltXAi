@@ -1,2 +1,2 @@
-python-telegram-bot
-requests
+openai==0.25.0
+pyTelegramBotAPI==4.8.0
