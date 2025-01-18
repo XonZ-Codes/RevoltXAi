@@ -12,16 +12,23 @@ logging.basicConfig(
 
 # Fungsi untuk menghasilkan respons menggunakan Hugging Face API
 def generate_response(prompt):
-    api_url = "https://api-inference.huggingface.co/models/distilgpt2"
+    api_url = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium"  # Ganti dengan model lain jika perlu
     headers = {"Authorization": f"Bearer {os.getenv('HUGGING_FACE_API_KEY')}"}
     payload = {"inputs": prompt}
-    response = requests.post(api_url, headers=headers, json=payload)
     
-    # Cek apakah respons valid
-    if response.status_code == 200 and isinstance(response.json(), list):
-        return response.json()[0]['generated_text']
-    else:
-        raise Exception(f"Error dari Hugging Face API: {response.status_code} - {response.text}")
+    try:
+        response = requests.post(api_url, headers=headers, json=payload)
+        response.raise_for_status()  # Raise exception jika status code bukan 200
+        response_data = response.json()
+        
+        # Cek apakah respons valid
+        if isinstance(response_data, list) and len(response_data) > 0:
+            return response_data[0]['generated_text']
+        else:
+            raise Exception("Respons dari API tidak valid.")
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error saat memanggil Hugging Face API: {e}")
+        raise Exception("Terjadi kesalahan saat memproses pesan Anda. Silakan coba lagi nanti.")
 
 # Handler untuk command /start
 async def start(update: Update, context):
@@ -42,7 +49,7 @@ async def chat(update: Update, context):
         await update.message.reply_text(response)
     except Exception as e:
         logging.error(f"Error: {e}")
-        await update.message.reply_text("Maaf, terjadi kesalahan saat memproses pesan Anda.")
+        await update.message.reply_text(f"Maaf, terjadi kesalahan: {str(e)}")
 
 if __name__ == '__main__':
     # Ambil token bot Telegram dari environment variable
