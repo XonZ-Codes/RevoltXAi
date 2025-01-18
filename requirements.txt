@@ -1,3 +1,2 @@
 python-telegram-bot
-transformers
-torch --index-url https://download.pytorch.org/whl/cpu
+requests
