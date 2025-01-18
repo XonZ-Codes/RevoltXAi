@@ -16,7 +16,12 @@ def generate_response(prompt):
     headers = {"Authorization": f"Bearer {os.getenv('HUGGING_FACE_API_KEY')}"}
     payload = {"inputs": prompt}
     response = requests.post(api_url, headers=headers, json=payload)
-    return response.json()[0]['generated_text']
+    
+    # Cek apakah respons valid
+    if response.status_code == 200 and isinstance(response.json(), list):
+        return response.json()[0]['generated_text']
+    else:
+        raise Exception(f"Error dari Hugging Face API: {response.status_code} - {response.text}")
 
 # Handler untuk command /start
 async def start(update: Update, context):
@@ -28,8 +33,11 @@ async def chat(update: Update, context):
     logging.info(f"User: {user_message}")
 
     try:
+        # Berikan konteks yang jelas ke model
+        prompt = f"Anda adalah asisten AI yang ramah dan membantu. Jawablah pertanyaan berikut dengan singkat dan jelas: {user_message}"
+        
         # Generate respons menggunakan Hugging Face API
-        response = generate_response(user_message)
+        response = generate_response(prompt)
         logging.info(f"Bot: {response}")
         await update.message.reply_text(response)
     except Exception as e:
@@ -53,4 +61,5 @@ if __name__ == '__main__':
     application.add_handler(chat_handler)
 
     # Jalankan bot
+    logging.info("Starting bot...")
     application.run_polling()
